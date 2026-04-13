@@ -252,7 +252,105 @@ const handleDeleteProductInCart = async (cartItemId: string, sumCart: number, us
 
 };
 
+//place order
+const handlePlaceOrder = async (
+    userId: number,
+    receiverName: string,
+    receiverAddress: string,
+    receiverPhone: string,
+    totalAmount: number,
+    paymentMethod: string,
+    items: { variantId: number; quantity: number; price: number }[]
+) => {
+    if (!items || items.length === 0) {
+        return { success: false, message: "No items selected for checkout" };
+    }
+
+    try {
+        await prisma.$transaction(async (tx) => {
+            // Kiểm tra tồn kho trước
+            for (const i of items) {
+                const inventory = await tx.inventory.findFirst({
+                    where: { product_variant_id: i.variantId },
+                    include: { variant: { include: { product: true } } },
+                });
+
+                if (!inventory) {
+                    throw new Error(`Inventory not found for variant ${i.variantId}`);
+                }
+
+                if (inventory.stock < i.quantity) {
+                    throw new Error(
+                        `Product ${inventory.variant.product.name} (${inventory.variant.color} ${inventory.variant.storage}) is out of stock. Only ${inventory.stock} left.`
+                    );
+                }
+            }
+
+            //  Nếu đủ stock → tạo order
+            await tx.order.create({
+                data: {
+                    user_id: userId,
+                    total_amount: totalAmount,
+                    status: "PENDING",
+                    paymentMethod,
+                    paymentStatus: "PAYMENT_UNPAID",
+                    receiverName,
+                    receiverAddress,
+                    receiverPhone,
+                    items: {
+                        create: items.map(i => ({
+                            variant_id: i.variantId,
+                            quantity: i.quantity,
+                            price: i.price,
+                        })),
+                    },
+                },
+            });
+
+            // Trừ kho + ghi log
+            for (const i of items) {
+                const inventory = await tx.inventory.findFirst({
+                    where: { product_variant_id: i.variantId },
+                });
+
+                if (inventory) {
+                    await tx.inventory.update({
+                        where: { id: inventory.id },
+                        data: {
+                            stock: { decrement: i.quantity },
+                            sold: { increment: i.quantity },
+                        },
+                    });
+
+                    await tx.inventoryLog.create({
+                        data: {
+                            product_variant_id: i.variantId,
+                            action_type: "ORDER",
+                            quantity: i.quantity,
+                            note: "Stock decreased after order placement",
+                            created_by: userId,
+                        },
+                    });
+                }
+            }
+
+            // Xoá các cartItem liên quan
+            await tx.cartItem.deleteMany({
+                where: {
+                    cart: { user_id: userId },
+                    variant_id: { in: items.map(i => i.variantId) },
+                },
+            });
+        });
+
+        return { success: true, message: "Order placed successfully" };
+    } catch (error: any) {
+        return { success: false, message: error.message || "Failed to place order" };
+    }
+};
+
+
 export {
     countTotalProductClientPages, fetchProductsPaginated, fetchAllProducts, getProductById, getAllCategory, getProductInCart, addProductToCart,
-    updateCartDetailBeforeCheckout, handleDeleteProductInCart
+    updateCartDetailBeforeCheckout, handleDeleteProductInCart, handlePlaceOrder
 }

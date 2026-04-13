@@ -1,4 +1,4 @@
-import { deleteProductInCart, filterProducts, getAllProducts, getCart, getCategory, getDetailProduct, getProductsPaginate, postAddProductToCart, postHandleCartToCheckOut } from 'controllers/client/product-controller'
+import { deleteProductInCart, filterProducts, getAllProducts, getCart, getCategory, getCheckOutPage, getDetailProduct, getProductsPaginate, postAddProductToCart, postHandleCartToCheckOut, postPlaceOrder } from 'controllers/client/product-controller'
 import express, { Express } from 'express'
 import { verifyToken } from 'src/middleware/verifyToken'
 const router = express.Router()
@@ -21,7 +21,9 @@ const api = (app: Express) => {
     router.delete("/delete-product/:id", verifyToken, deleteProductInCart)
 
     //checkout
-    router.post("/handle-cart-to-checkout", postHandleCartToCheckOut); //cập nhật giỏ hàng trước khi checkout
+    router.post("/handle-cart-to-checkout", verifyToken, postHandleCartToCheckOut); //cập nhật giỏ hàng trước khi checkout
+    router.get("/checkout", verifyToken, getCheckOutPage); //lấy thông tin giỏ hàng của user chuẩn bị thanh toán
+    router.post("/place-order", verifyToken, postPlaceOrder);// thực hiện đặt hàng
 
     app.use("/api", router)
 

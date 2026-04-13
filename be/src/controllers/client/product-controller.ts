@@ -1,6 +1,6 @@
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
-import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart, handleDeleteProductInCart, updateCartDetailBeforeCheckout } from 'services/client/product-service';
+import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart, handleDeleteProductInCart, handlePlaceOrder, updateCartDetailBeforeCheckout } from 'services/client/product-service';
 
 const getAllProducts = async (req: Request, res: Response) => {
     try {
@@ -289,7 +289,72 @@ const deleteProductInCart = async (req: Request, res: Response) => {
     }
 }
 
+const getCheckOutPage = async (req: Request, res: Response) => {
+    try {
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+
+        const user = req.user;
+        const cartDetails = await getProductInCart(+user.id);
+
+        const totalPrice = cartDetails?.reduce(
+            (sum, item) => sum + (+item.price * +item.quantity),
+            0
+        ) ?? 0;
+
+        return res.status(200).json({
+            success: true,
+            message: "Lấy thông tin giỏ hàng thành công",
+            cartDetails,
+            totalPrice
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const postPlaceOrder = async (req: Request, res: Response) => {
+    try {
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+
+        const userId = req.user.id;
+        const { receiverName, receiverAddress, receiverPhone, totalAmount, paymentMethod, items } = req.body;
+
+        const result = await handlePlaceOrder(
+            userId,
+            receiverName,
+            receiverAddress,
+            receiverPhone,
+            totalAmount,
+            paymentMethod,
+            items
+        );
+
+        return res.status(200).json(result);
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            message: "Có lỗi xảy ra khi đặt hàng",
+            error: error.message
+        });
+    }
+};
+
 export {
     getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart, postAddProductToCart, postHandleCartToCheckOut,
-    deleteProductInCart
+    deleteProductInCart, getCheckOutPage, postPlaceOrder
 }
