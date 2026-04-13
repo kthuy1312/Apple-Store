@@ -1,6 +1,6 @@
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
-import { countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getProductById } from 'services/client/product-service';
+import { countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart } from 'services/client/product-service';
 
 const getAllProducts = async (req: Request, res: Response) => {
     try {
@@ -140,6 +140,60 @@ const filterProducts = async (req: Request, res: Response) => {
     }
 };
 
+//category
+const getCategory = async (req: Request, res: Response) => {
+    try {
+        const categories = await getAllCategory()
+        res.status(200).json({
+            message: "Lấy danh mục sản phẩm thành công",
+            data: categories,
+        });
+    } catch (err: any) {
+        res.status(500).json({
+            message: "Đã xảy ra lỗi khi lấy danh mục sản phẩm",
+            error: err.message,
+        });
+    }
+}
+
+//CART
+
+const getCart = async (req: Request, res: Response) => {
+
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized"
+        })
+    }
+
+    // trả về tất cả sản phẩm trong giỏ hàng , totalPrice,
+    // trả về luôn cardId cho các bước 
+    const user = req.user;
+    try {
+        const cartDetails = await getProductInCart(+user.id);
+        const totalPrice = cartDetails?.map(item => (item.quantity * +item.price))
+            ?.reduce((a, b) => a + b, 0); // tính tổng
+        const cartId = cartDetails.length ? cartDetails[0].cart_id : 0
+        res.status(200).json({
+            success: true,
+            cart_detail: cartDetails,
+            totalPrice,
+            cartId
+        });
+    }
+    catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: "Có lỗi xảy ra khi lấy thông tin giỏ hàng",
+            error,
+        });
+
+    }
+
+}
+
+
 export {
-    getAllProducts, getProductsPaginate, getDetailProduct, filterProducts
+    getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart
 }

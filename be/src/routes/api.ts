@@ -1,5 +1,6 @@
-import { filterProducts, getAllProducts, getDetailProduct, getProductsPaginate } from 'controllers/client/product-controller'
+import { filterProducts, getAllProducts, getCart, getCategory, getDetailProduct, getProductsPaginate } from 'controllers/client/product-controller'
 import express, { Express } from 'express'
+import { verifyToken } from 'src/middleware/verifyToken'
 const router = express.Router()
 
 const api = (app: Express) => {
@@ -11,6 +12,11 @@ const api = (app: Express) => {
     router.get("/product/:id", getDetailProduct)
 
     router.get("/products/filter", filterProducts)
+    router.get("/category", getCategory)
+
+
+    //cart
+    router.get("/cart", verifyToken, getCart)
 
     app.use("/api", router)
 

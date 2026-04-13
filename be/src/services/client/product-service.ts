@@ -72,6 +72,28 @@ const getProductById = async (id: string) => {
     })
 };
 
+const getAllCategory = async () => {
+    return await prisma.category.findMany()
+};
+
+//cart
+const getProductInCart = async (id: number) => {
+    const cart = await prisma.cart.findUnique({ where: { user_id: id } })
+    if (cart) {
+        return await prisma.cartItem.findMany({
+            where: {
+                cart_id: cart.id
+            },
+            include: {
+                variant: true
+            }
+        })
+    }
+
+    return [];
+
+};
+
 export {
-    countTotalProductClientPages, fetchProductsPaginated, fetchAllProducts, getProductById
+    countTotalProductClientPages, fetchProductsPaginated, fetchAllProducts, getProductById, getAllCategory, getProductInCart
 }
