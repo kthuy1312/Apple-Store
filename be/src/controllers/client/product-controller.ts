@@ -1,6 +1,6 @@
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
-import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart } from 'services/client/product-service';
+import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart, updateCartDetailBeforeCheckout } from 'services/client/product-service';
 
 const getAllProducts = async (req: Request, res: Response) => {
     try {
@@ -193,8 +193,6 @@ const getCart = async (req: Request, res: Response) => {
 
 }
 
-//ADD PRODUCT TO CART
-
 const postAddProductToCart = async (req: Request, res: Response) => {
     if (!req.user) {
         return res.status(401).json({
@@ -226,7 +224,33 @@ const postAddProductToCart = async (req: Request, res: Response) => {
 
 }
 
+//CHECKOUT
+const postHandleCartToCheckOut = async (req: Request, res: Response) => {
+
+    //đặt hàng truyền idCart , quantity , variantID
+    const { cart_id, cartDetails } = req.body as {
+        cart_id: string,
+        cartDetails: { item_id: string, quantity: string }[]
+    }
+    try {
+
+        await updateCartDetailBeforeCheckout(cart_id, cartDetails);
+        res.status(200).json({
+            success: true,
+            message: "Cập nhật thông tin giỏ hàng thành công, chuẩn bị checkout",
+        });
+
+    }
+    catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+
+}
 
 export {
-    getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart, postAddProductToCart
+    getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart, postAddProductToCart, postHandleCartToCheckOut
 }
