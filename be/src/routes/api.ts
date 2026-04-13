@@ -1,4 +1,4 @@
-import { getAllProducts, getProductsPaginate } from 'controllers/client/product-controller'
+import { getAllProducts, getDetailProduct, getProductsPaginate } from 'controllers/client/product-controller'
 import express, { Express } from 'express'
 const router = express.Router()
 
@@ -8,7 +8,7 @@ const api = (app: Express) => {
     router.get("/products", getAllProducts)
     router.get("/product", getProductsPaginate)
 
-
+    router.get("/product/:id", getDetailProduct)
 
     app.use("/api", router)
 

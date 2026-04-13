@@ -1,6 +1,6 @@
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
-import { countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated } from 'services/client/product-service';
+import { countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getProductById } from 'services/client/product-service';
 
 const getAllProducts = async (req: Request, res: Response) => {
     try {
@@ -52,7 +52,22 @@ const getProductsPaginate = async (req: Request, res: Response) => {
     }
 }
 
-export {
-    getAllProducts, getProductsPaginate
+const getDetailProduct = async (req: Request, res: Response) => {
+    const id = req.params.id
+    try {
+        const product = await getProductById(id as string);
+        res.status(200).json({
+            message: "Lấy thông tin sản phẩm thành công",
+            data: product,
+        });
+    } catch (err: any) {
+        res.status(500).json({
+            message: "Đã xảy ra lỗi khi lấy thông tin sản phẩm",
+            error: err.message,
+        });
+    }
+}
 
+export {
+    getAllProducts, getProductsPaginate, getDetailProduct
 }

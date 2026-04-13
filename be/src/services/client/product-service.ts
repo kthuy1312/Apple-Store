@@ -49,7 +49,29 @@ const fetchProductsPaginated = async (page: number = 1, pageSize: number = 50) =
     });
 };
 
-export {
-    countTotalProductClientPages, fetchProductsPaginated, fetchAllProducts
+const getProductById = async (id: string) => {
+    return await prisma.product.findUnique({
+        where: {
+            id: +id,
+            status: true,
+        },
+        include: {
+            category: {
+                select: {
+                    name: true,
+                },
+            },
+            variants: {
+                where: { status: true },
+                include: {
+                    Inventory: true
+                }
+            }
 
+        }
+    })
+};
+
+export {
+    countTotalProductClientPages, fetchProductsPaginated, fetchAllProducts, getProductById
 }
