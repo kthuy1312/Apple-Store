@@ -68,6 +68,78 @@ const getDetailProduct = async (req: Request, res: Response) => {
     }
 }
 
+//filter
+const filterProducts = async (req: Request, res: Response) => {
+    try {
+        const { keyword, category, subCategory, minPrice, maxPrice, sort } = req.query;
+
+        let where: any = {};
+
+        if (keyword) {
+            where.name = {
+                contains: String(keyword).toLowerCase(),
+            };
+        }
+
+
+        // filter theo category
+        if (category) {
+            where.category = {
+                name: String(category).toUpperCase(), // giả sử category là MAC/IPHONE
+            };
+        }
+
+        // filter theo subCategory
+        if (subCategory) {
+            where.subCategory = String(subCategory);
+        }
+
+        // filter theo khoảng giá (basePrice)
+        if (minPrice || maxPrice) {
+            where.basePrice = {};
+            if (minPrice) where.basePrice.gte = parseFloat(minPrice as string);
+            if (maxPrice) where.basePrice.lte = parseFloat(maxPrice as string);
+        }
+
+        // sắp xếp
+        let orderBy: any = {};
+        switch (sort) {
+            case "priceAsc":
+                orderBy = { basePrice: "asc" };
+                break;
+            case "priceDesc":
+                orderBy = { basePrice: "desc" };
+                break;
+            case "newest":
+                orderBy = { id: "desc" }; // hoặc createdAt nếu có
+                break;
+            case "oldest":
+                orderBy = { id: "asc" };
+                break;
+            case "nameAsc":
+                orderBy = { name: "asc" };
+                break;
+            case "nameDesc":
+                orderBy = { name: "desc" };
+                break;
+            default:
+                orderBy = { id: "desc" };
+                break;
+        }
+
+        const products = await prisma.product.findMany({
+            where,
+            orderBy,
+            include: { variants: true, category: true },
+        });
+
+        res.json(products);
+    } catch (err) {
+        console.error("Filter products error:", err);
+        res.status(500).json({ error: "Error filtering products" });
+    }
+};
+
 export {
-    getAllProducts, getProductsPaginate, getDetailProduct
+    getAllProducts, getProductsPaginate, getDetailProduct, filterProducts
 }
