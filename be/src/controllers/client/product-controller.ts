@@ -1,6 +1,6 @@
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
-import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart, updateCartDetailBeforeCheckout } from 'services/client/product-service';
+import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart, handleDeleteProductInCart, updateCartDetailBeforeCheckout } from 'services/client/product-service';
 
 const getAllProducts = async (req: Request, res: Response) => {
     try {
@@ -251,6 +251,45 @@ const postHandleCartToCheckOut = async (req: Request, res: Response) => {
 
 }
 
+const deleteProductInCart = async (req: Request, res: Response) => {
+
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized"
+        })
+    }
+
+    // trả về tất cả sản phẩm trong giỏ hàng , totalPrice,
+    // trả về luôn cardId cho các bước 
+    const user = req.user;
+
+    if (!user.sumCart) {
+        return res.status(400).json({
+            success: false,
+            message: "Thiếu thông tin giỏ hàng"
+        })
+    }
+
+    const cartItemId = req.params.id as string
+    try {
+        await handleDeleteProductInCart(cartItemId, user.sumCart, user.id)
+        res.status(200).json({
+            success: true,
+            message: "Xóa sản phẩm thành công",
+        });
+
+    }
+    catch (error: any) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+}
+
 export {
-    getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart, postAddProductToCart, postHandleCartToCheckOut
+    getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart, postAddProductToCart, postHandleCartToCheckOut,
+    deleteProductInCart
 }
