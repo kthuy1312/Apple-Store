@@ -4,6 +4,9 @@
 import express from 'express'
 import initDatabase from 'config/seed'
 import cors from 'cors'
+import configPassport from './middleware/passport'
+import passport from 'passport'
+import authRoute from 'routes/auth'
 
 const app = express()
 
@@ -23,6 +26,15 @@ app.use(express.urlencoded({ extended: true }));
 //config static file
 app.use(express.static('public'))
 
+//config passport
+configPassport();
+app.use(passport.initialize());
+
+//config global
+app.use((req, res, next) => {
+    res.locals.user = req.user || null; // Pass user object to all views
+    next();
+});
 
 //cors
 app.use(cors({
@@ -32,6 +44,8 @@ app.use(cors({
 
 
 //config routes
+authRoute(app)
+
 
 //mock data
 initDatabase()

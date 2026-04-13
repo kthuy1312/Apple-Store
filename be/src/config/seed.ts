@@ -1,12 +1,12 @@
 import { prisma } from "config/client"
-
+import { hashPassword } from "services/auth.service";
 const initDatabase = async () => {
 
     const countUser = await prisma.user.count();
     const countCategory = await prisma.category.count();
     const countProduct = await prisma.product.count();
     if (countUser === 0) {
-        const pwd = "123456"
+        const pwd = await hashPassword("123456")
         await prisma.user.createMany(
             {
                 data: [
