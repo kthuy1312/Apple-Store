@@ -1,3 +1,7 @@
+import { useEffect, useState } from "react";
+import Banner from "../components/home/banner";
+import Product from "../components/home/product";
+
 
 
 const HomePage = () => {
@@ -6,7 +10,8 @@ const HomePage = () => {
 
     return (
         <>
-
+            <Banner />
+            <Product />
 
         </>
     );
