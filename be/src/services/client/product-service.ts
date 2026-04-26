@@ -85,7 +85,13 @@ const getProductInCart = async (id: number) => {
                 cart_id: cart.id
             },
             include: {
-                variant: true
+                variant: {
+                    include: {
+                        product: true,
+                        Inventory: true
+                    },
+
+                }
             }
         })
     }
