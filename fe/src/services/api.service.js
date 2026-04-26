@@ -33,7 +33,18 @@ const getCartCount = async () => {
     });
 };
 
+//product
+const getAllCategory = () => {
+    const URL_BACKEND = `/api/category`;
+    return axios.get(URL_BACKEND);
+}
+
+const filterProducts = (filters) => {
+    const URL_BACKEND = `/api/products/filter`;
+    return axios.get(URL_BACKEND, { params: filters });
+};
+
 
 export {
-    postLogin, getAccountAPI, getCartCount, postRegister
+    postLogin, getAccountAPI, getCartCount, postRegister, getAllCategory, filterProducts
 }
