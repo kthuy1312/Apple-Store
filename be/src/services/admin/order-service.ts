@@ -1,3 +1,4 @@
+import { OrderStatus } from "@prisma/client";
 import { prisma } from "config/client";
 
 const getAllOrder = async () => {
@@ -6,4 +7,15 @@ const getAllOrder = async () => {
     );
 }
 
-export { getAllOrder }
+const handleUpdateStatusOrder = async (status: OrderStatus, orderId: number) => {
+    return await prisma.order.update({
+        where: {
+            order_id: orderId
+        },
+        data: {
+            status: status
+        }
+    })
+}
+
+export { getAllOrder, handleUpdateStatusOrder }

@@ -1,4 +1,4 @@
-import { getOrders } from 'controllers/admin/order-controller'
+import { getOrders, updateStatusOrder } from 'controllers/admin/order-controller'
 import { disabledUser, getUsers, postUpdateUser } from 'controllers/admin/user-controller'
 import express, { Express } from 'express'
 import fileUploadMiddleware from 'src/middleware/multer'
@@ -15,6 +15,7 @@ const webRoutes = (app: Express) => {
 
     //order
     router.get("/admin/orders", verifyToken, getOrders)
+    router.put("/admin/orders/:orderId", verifyToken, updateStatusOrder)
 
     app.use("/", router)
 }
