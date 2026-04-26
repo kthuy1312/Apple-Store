@@ -1,5 +1,5 @@
 import { getOrders, updateStatusOrder } from 'controllers/admin/order-controller'
-import { postCreateProduct, postHideProduct, postHideVariant, postUpdateProduct } from 'controllers/admin/product-controller'
+import { getInventory, postCreateProduct, postHideProduct, postHideVariant, postUpdateProduct } from 'controllers/admin/product-controller'
 import { disabledUser, getUsers, postUpdateUser } from 'controllers/admin/user-controller'
 import express, { Express } from 'express'
 import fileUploadMiddleware from 'src/middleware/multer'
@@ -25,6 +25,9 @@ const webRoutes = (app: Express) => {
 
     //variants
     router.put("/admin/hide-variant/:id", verifyToken, postHideVariant)
+
+    //inventory
+    router.get("/admin/inventory", verifyToken, getInventory)
 
     app.use("/", router)
 }
