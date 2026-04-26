@@ -1,29 +1,50 @@
-import { useMemo, useState } from 'react';
-import { SearchOutlined, ShoppingOutlined, UserOutlined, DashboardOutlined } from '@ant-design/icons';
-import { ConfigProvider, Menu } from 'antd';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { SearchOutlined, ShoppingOutlined, UserOutlined, ExclamationCircleOutlined, DashboardOutlined } from '@ant-design/icons';
+import { Badge, ConfigProvider, Menu, message, Modal } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './header.css';
+import { AuthContext } from '../context/auth.context';
+import { getCartCount } from '../../services/api.service';
 
 const Header = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [current, setCurrent] = useState('');
-    const [showSearch, setShowSearch] = useState(false);
-    const [searchValue, setSearchValue] = useState('');
+    const { user, setUser, cartCount, setCartCount } = useContext(AuthContext);
 
-    // map key -> route
+    // search state
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchValue, setSearchValue] = useState("");
+
+    useEffect(() => {
+        const fetchCartCount = async () => {
+            if (!user) {
+                setCartCount(0);
+                return;
+            }
+            try {
+                const res = await getCartCount();
+                if (res.data.success) {
+                    setCartCount(res.data.cartCount);
+                }
+            } catch (err) {
+                console.error("Failed to fetch cart count:", err);
+            }
+        };
+        fetchCartCount();
+    }, [user, location.pathname]);
+
     const routeMap = useMemo(() => ({
-        home: '/',
         support: '/support',
         orders: '/orders',
         profile: '/profile',
         cart: '/cart',
         login: '/login',
         register: '/register',
-        admin: '/admin',
+        home: '/',
+        admin: '/admin'
     }), []);
 
-    // menu items
     const items = useMemo(() => {
         const commonItems = [
             { key: 'home', label: 'Home' },
@@ -32,12 +53,32 @@ const Header = () => {
             { key: 'orders', label: 'Orders' },
             {
                 key: 'cart',
-                icon: <ShoppingOutlined style={{ fontSize: '17px' }} />,
+                icon: user ? (
+                    <Badge
+                        count={cartCount}
+                        showZero
+                        size="small"
+                        offset={[4, -2]}
+                        overflowCount={99}
+                        style={{
+                            fontSize: "11px",
+                            minWidth: "15px",
+                            height: "16px",
+                            lineHeight: "16px",
+                        }}
+                    >
+                        <ShoppingOutlined style={{ fontSize: '18px' }} />
+                    </Badge>
+                ) : (
+                    <ShoppingOutlined style={{ fontSize: '18px' }} />
+                ),
                 label: 'Cart',
-            },
+            }
+
+
         ];
 
-        // thêm search khi không ở home
+        // Ở homepage thì KHÔNG thêm nút search
         if (location.pathname !== "/") {
             commonItems.push({
                 key: 'search',
@@ -46,21 +87,57 @@ const Header = () => {
             });
         }
 
-        // thêm login / profile / admin cho đủ routeMap
-        commonItems.push(
-            { key: 'login', label: 'Sign in' },
-            // { key: 'profile', label: 'Profile', icon: <UserOutlined /> },
-            // { key: 'admin', label: 'Admin', icon: <DashboardOutlined /> },
-        );
+        if (user) {
+            //admin
+            if (user.role?.toLowerCase() === "admin") {
+                return [
+                    { key: 'home', label: 'Home' },
+                    {
+                        key: 'admin',
+                        label: 'Admin',
+                        icon: <DashboardOutlined style={{ fontSize: '17px' }} />,
+                    },
+                    { key: 'logout', label: 'Logout' },
+                ];
+            }
 
-        return commonItems;
-    }, [location.pathname]);
+            //user thường
+            return [
+                ...commonItems,
+                { key: 'profile', label: 'Profile', icon: <UserOutlined style={{ fontSize: '17px' }} /> },
+                { key: 'logout', label: 'Logout' },
+            ];
+        }
 
-    // xử lý click menu
-    const onClick = (e) => {
+        return [...commonItems, { key: 'login', label: 'Sign in' }];
+    }, [user, location.pathname, cartCount]);
+
+    const onClick = e => {
         setCurrent(e.key);
 
-        if (e.key === 'search') {
+        if (!user && (e.key === "cart" || e.key === "orders")) {
+            message.warning("You must be logged in to access this feature");
+            return;
+        }
+
+        if (e.key === 'logout') {
+            Modal.confirm({
+                title: "Are you sure you want to log out?",
+                icon: <ExclamationCircleOutlined style={{ color: '#faad14' }} />,
+                okText: "Yes, Logout",
+                okType: "danger",
+                cancelText: "No",
+                onOk: () => {
+                    setUser(null);
+                    localStorage.removeItem('access_token');
+                    message.success("Logout successful");
+                    navigate('/');
+                },
+            });
+            return;
+        }
+
+        if (e.key === "search") {
             setShowSearch(prev => !prev);
             return;
         }
@@ -69,9 +146,8 @@ const Header = () => {
         if (targetRoute) navigate(targetRoute);
     };
 
-    // enter search
     const handleSearchKeyDown = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === "Enter") {
             navigate(`/?keyword=${encodeURIComponent(searchValue)}`);
             setShowSearch(false);
         }
@@ -92,9 +168,9 @@ const Header = () => {
         >
             <div className="header-sticky">
                 <div className="header-container">
-                    <div onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                    <a href="/">
                         <img src="/images/logo.png" alt="logo" className="header-logo" />
-                    </div>
+                    </a>
                     <Menu
                         onClick={onClick}
                         selectedKeys={current ? [current] : []}
@@ -104,7 +180,7 @@ const Header = () => {
                     />
                 </div>
 
-                {/* search bar */}
+                {/* Search bar chỉ render nếu KHÔNG ở home */}
                 {location.pathname !== "/" && (
                     <div className={`header-search-bar ${showSearch ? "show" : ""}`}>
                         <input
