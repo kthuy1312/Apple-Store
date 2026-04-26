@@ -1,6 +1,6 @@
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
-import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart, handleDeleteProductInCart, handlePlaceOrder, updateCartDetailBeforeCheckout } from 'services/client/product-service';
+import { addProductToCart, countTotalProductClientPages, fetchAllProducts, fetchProductsPaginated, getAllCategory, getProductById, getProductInCart, handleDeleteProductInCart, handlePlaceOrder, listOrdersByUserId, updateCartDetailBeforeCheckout } from 'services/client/product-service';
 
 const getAllProducts = async (req: Request, res: Response) => {
     try {
@@ -421,7 +421,35 @@ const postPlaceOrder = async (req: Request, res: Response) => {
     }
 };
 
+// ORDER
+
+const getOrderHistory = async (req: Request, res: Response) => {
+    try {
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+
+        const userId = req.user.id
+
+        const order = await listOrdersByUserId(userId);
+        return res.status(200).json({
+            success: true,
+            message: "Lấy lịch sử đặt hàng thành công",
+            order
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
 export {
     getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart, postAddProductToCart, postHandleCartToCheckOut,
-    deleteProductInCart, getCheckOutPage, postPlaceOrder, getCartCount, postAddToCartFromDetailPage
+    deleteProductInCart, getCheckOutPage, postPlaceOrder, getCartCount, postAddToCartFromDetailPage, getOrderHistory
 }
