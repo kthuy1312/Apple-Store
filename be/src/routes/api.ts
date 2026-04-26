@@ -1,5 +1,5 @@
 import { deleteProductInCart, filterProducts, getAllProducts, getCart, getCartCount, getCategory, getCheckOutPage, getDetailProduct, getOrderHistory, getProductsPaginate, postAddProductToCart, postAddToCartFromDetailPage, postHandleCartToCheckOut, postPlaceOrder, putCancelOrder } from 'controllers/client/product-controller'
-import { postUpdateProfile } from 'controllers/client/user-controller'
+import { getWishlist, postUpdateProfile } from 'controllers/client/user-controller'
 import express, { Express } from 'express'
 import fileUploadMiddleware from 'src/middleware/multer'
 import { verifyToken } from 'src/middleware/verifyToken'
@@ -40,6 +40,9 @@ const api = (app: Express) => {
         fileUploadMiddleware("avatar", "avatar"), // field name = "avatar", lưu vào public/avatar
         postUpdateProfile
     );
+
+    //wishlist 
+    router.get("/wishlist", verifyToken, getWishlist);
 
     app.use("/api", router)
 
