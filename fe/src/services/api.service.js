@@ -17,6 +17,13 @@ const getAccountAPI = () => {
     });
 };
 
+
+const postRegister = (name, email, password, confirmPassword) => {
+    const URL_BACKEND = `/auth/register`;
+    const data = { name, email, password, confirmPassword }
+    return axios.post(URL_BACKEND, data);
+}
+
 //cart 
 const getCartCount = async () => {
     const token = localStorage.getItem("access_token");
@@ -28,5 +35,5 @@ const getCartCount = async () => {
 
 
 export {
-    postLogin, getAccountAPI, getCartCount
+    postLogin, getAccountAPI, getCartCount, postRegister
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-const AuthForm = ({ handleChange, handleSubmit, credentials, isSubmitting }) => {
+const AuthForm = ({ handleChange, handleSubmit, credentials, isSubmitting, error }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
@@ -48,6 +48,13 @@ const AuthForm = ({ handleChange, handleSubmit, credentials, isSubmitting }) => 
                 />
                 Remember me
             </label>
+
+            {/* Hiển thị 1 lỗi string */}
+            {error && (
+                <div className="auth-error" style={{ marginTop: "8px" }}>
+                    <p>{error}</p>
+                </div>
+            )}
 
             <button type="submit" className="auth-submit" disabled={isSubmitting}>
                 {isSubmitting ? "Signing in…" : "Sign in"}

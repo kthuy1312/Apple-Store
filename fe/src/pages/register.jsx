@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/auth.css';
+import { postRegister } from '../services/api.service';
 import { Eye, EyeOff } from 'lucide-react';
+import { message } from 'antd';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -22,14 +24,37 @@ const RegisterPage = () => {
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        alert(`
-        Full name: ${form.name}
-        Email: ${form.email}
-        Password: ${form.password}
-        Confirm Password: ${form.confirmPassword}
-    `);
+        setErrors([]);
+        setIsSubmitting(true);
+
+        try {
+            const res = await postRegister(
+                form.name,
+                form.email,
+                form.password,
+                form.confirmPassword
+            );
+
+            if (res.success === false) {
+                const allErrors = res.errors.map((err) => err.message);
+                setErrors(allErrors);
+                return;
+            }
+            message.success('Registration successful! Please log in to continue.');
+            navigate('/login');
+        } catch (err) {
+            console.error('Unexpected error:', err);
+            if (err.response?.data?.errors) {
+                const allErrors = err.response.data.errors.map((e) => e.message);
+                setErrors(allErrors);
+            } else {
+                setErrors([err.response?.data?.message || 'Registration failed']);
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
