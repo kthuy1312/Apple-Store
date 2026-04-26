@@ -1,5 +1,5 @@
 import { deleteProductInCart, filterProducts, getAllProducts, getCart, getCartCount, getCategory, getCheckOutPage, getDetailProduct, getOrderHistory, getProductsPaginate, postAddProductToCart, postAddToCartFromDetailPage, postHandleCartToCheckOut, postPlaceOrder, putCancelOrder } from 'controllers/client/product-controller'
-import { deleteAllWishlist, deleteWishlist, getWishlist, postUpdateProfile, postWishlist } from 'controllers/client/user-controller'
+import { deleteAllWishlist, deleteWishlist, getWishlist, postReview, postUpdateProfile, postWishlist } from 'controllers/client/user-controller'
 import express, { Express } from 'express'
 import fileUploadMiddleware from 'src/middleware/multer'
 import { verifyToken } from 'src/middleware/verifyToken'
@@ -46,6 +46,9 @@ const api = (app: Express) => {
     router.post("/wishlist/:productId", verifyToken, postWishlist);
     router.delete("/wishlist/:productId", verifyToken, deleteWishlist);
     router.delete("/wishlist", verifyToken, deleteAllWishlist);
+
+    //review
+    router.post("/review", verifyToken, postReview);
 
     app.use("/api", router)
 
