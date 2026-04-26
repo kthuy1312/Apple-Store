@@ -44,6 +44,26 @@ const handlePostWishlist = async (userId: number, productId: number) => {
 
 };
 
+const handleDeleteWishlist = async (userId: number, productId: number) => {
+
+    const isExist = await prisma.wishlist.findFirst({
+        where: {
+            user_id: userId,
+            product_id: productId
+        }
+    })
+    if (!isExist) {
+        throw new Error("Sản phẩm không tồn tại trong danh sách yêu thích");
+    }
+
+    return prisma.wishlist.deleteMany({
+        where: {
+            user_id: userId,
+            product_id: productId
+        }
+    })
+}
+
 export {
-    fetchWishList, handlePostWishlist
+    fetchWishList, handlePostWishlist, handleDeleteWishlist
 }
