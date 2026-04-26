@@ -1,5 +1,5 @@
 import { deleteProductInCart, filterProducts, getAllProducts, getCart, getCartCount, getCategory, getCheckOutPage, getDetailProduct, getOrderHistory, getProductsPaginate, postAddProductToCart, postAddToCartFromDetailPage, postHandleCartToCheckOut, postPlaceOrder, putCancelOrder } from 'controllers/client/product-controller'
-import { deleteAllWishlist, deleteWishlist, getWishlist, postReview, postUpdateProfile, postWishlist } from 'controllers/client/user-controller'
+import { deleteAllWishlist, deleteWishlist, getReview, getWishlist, postReview, postUpdateProfile, postWishlist } from 'controllers/client/user-controller'
 import express, { Express } from 'express'
 import fileUploadMiddleware from 'src/middleware/multer'
 import { verifyToken } from 'src/middleware/verifyToken'
@@ -49,6 +49,7 @@ const api = (app: Express) => {
 
     //review
     router.post("/review", verifyToken, postReview);
+    router.get("/review/:id", getReview);
 
     app.use("/api", router)
 

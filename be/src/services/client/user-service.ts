@@ -73,6 +73,23 @@ const handleDeleteAllWishlist = async (userId: number) => {
     })
 }
 
+const handleGetReview = async (productId: number) => {
+    try {
+        return await prisma.review.findMany({
+            where: {
+                product_id: productId
+            },
+            include: {
+                user: true
+            }
+        })
+    }
+
+    catch (error: any) {
+        throw new Error("Có lỗi xảy ra khi lấy đánh giá sản phẩm");
+    }
+};
+
 export {
-    fetchWishList, handlePostWishlist, handleDeleteWishlist, handleDeleteAllWishlist
+    fetchWishList, handlePostWishlist, handleDeleteWishlist, handleDeleteAllWishlist, handleGetReview
 }

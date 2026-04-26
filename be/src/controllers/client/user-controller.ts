@@ -1,7 +1,7 @@
 import { User } from "@prisma/client";
 import { Request, Response } from "express";
 import { prisma } from 'config/client'
-import { fetchWishList, handleDeleteAllWishlist, handleDeleteWishlist, handlePostWishlist } from "services/client/user-service";
+import { fetchWishList, handleDeleteAllWishlist, handleDeleteWishlist, handleGetReview, handlePostWishlist } from "services/client/user-service";
 
 const postUpdateProfile = async (req: Request, res: Response) => {
     try {
@@ -172,6 +172,23 @@ const postReview = async (req: Request, res: Response) => {
     }
 };
 
+const getReview = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id;
+        const data = await handleGetReview(+id)
+        return res.status(200).json({
+            success: true,
+            message: "Lấy đánh giá của sản phẩm thành công",
+            data
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
 export {
-    postUpdateProfile, getWishlist, postWishlist, deleteWishlist, deleteAllWishlist, postReview
+    postUpdateProfile, getWishlist, postWishlist, deleteWishlist, deleteAllWishlist, postReview, getReview
 }
