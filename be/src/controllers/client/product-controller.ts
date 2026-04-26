@@ -224,6 +224,44 @@ const postAddProductToCart = async (req: Request, res: Response) => {
 
 }
 
+// count cart
+const getCartCount = async (req: Request, res: Response) => {
+    try {
+
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+
+        const userId = req.user.id;
+
+        const cart = await prisma.cart.findUnique({
+            where: { user_id: userId },
+            include: {
+                items: true, // lấy danh sách cart_items
+            },
+        });
+
+        if (!cart) {
+            return res.json({ success: true, cartCount: 0 });
+        }
+
+        const cartCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+
+        return res.json({
+            success: true,
+            cartCount,
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
 //CHECKOUT
 const postHandleCartToCheckOut = async (req: Request, res: Response) => {
 
@@ -356,5 +394,5 @@ const postPlaceOrder = async (req: Request, res: Response) => {
 
 export {
     getAllProducts, getProductsPaginate, getDetailProduct, filterProducts, getCategory, getCart, postAddProductToCart, postHandleCartToCheckOut,
-    deleteProductInCart, getCheckOutPage, postPlaceOrder
+    deleteProductInCart, getCheckOutPage, postPlaceOrder, getCartCount
 }
