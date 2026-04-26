@@ -1,4 +1,5 @@
 import { getOrders, updateStatusOrder } from 'controllers/admin/order-controller'
+import { postCreateProduct, postHideProduct, postUpdateProduct } from 'controllers/admin/product-controller'
 import { disabledUser, getUsers, postUpdateUser } from 'controllers/admin/user-controller'
 import express, { Express } from 'express'
 import fileUploadMiddleware from 'src/middleware/multer'
@@ -16,6 +17,11 @@ const webRoutes = (app: Express) => {
     //order
     router.get("/admin/orders", verifyToken, getOrders)
     router.put("/admin/orders/:orderId", verifyToken, updateStatusOrder)
+
+    //product
+    router.post("/admin/products", fileUploadMiddleware("productImg", "product"), verifyToken, postCreateProduct)
+    router.put("/admin/products/:id", fileUploadMiddleware("productImg", "product"), verifyToken, postUpdateProduct)
+    router.put("/admin/hide-product/:id", verifyToken, postHideProduct)
 
     app.use("/", router)
 }
