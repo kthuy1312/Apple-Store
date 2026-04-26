@@ -1,7 +1,7 @@
 
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
-import { getAllUser, handleDisabledUser } from 'services/admin/user-service'
+import { getAllUser, handleDisabledUser, handleUpdateUser } from 'services/admin/user-service'
 
 
 
@@ -36,6 +36,31 @@ const disabledUser = async (req: Request, res: Response) => {
     }
 }
 
+const postUpdateUser = async (req: Request, res: Response) => {
+    try {
+        const userId = req.params.userId
+        const { name, email, address, phone, role, status } = req.body;
+        const file = req.file;
+        const userImg = file?.filename ?? undefined;
+
+
+        const updateUser = await handleUpdateUser(
+            +userId, name, email, address, phone, role, status, userImg)
+
+        return res.status(201).json({
+            message: "User updated successfully",
+            data: updateUser,
+        });
+    } catch (error: any) {
+        console.error("Error updating user:", error);
+        return res.status(500).json({
+            message: "Failed to update user",
+            error: error.message,
+        });
+    }
+
+}
+
 export {
-    getUsers, disabledUser
+    getUsers, disabledUser, postUpdateUser
 }
