@@ -10,6 +10,10 @@ import ErrorPage from './pages/error.jsx';
 import RegisterPage from './pages/register.jsx';
 import HomePage from './pages/home.jsx';
 import LoginPage from './pages/login.jsx';
+import { AuthWrapper } from './components/context/auth.context.jsx';
+import { App as AntdApp } from "antd";
+import GuestRoute from './pages/guest.route.jsx';
+
 
 const router = createBrowserRouter([
     {
@@ -23,20 +27,25 @@ const router = createBrowserRouter([
     {
         path: "/login",
         element: (
-            <LoginPage />
+            <GuestRoute>
+                <LoginPage />
+            </GuestRoute>
         )
     },
     {
         path: "/register",
         element: (
-            <RegisterPage />
+            <GuestRoute>
+                <RegisterPage />
+            </GuestRoute>
         )
     },
 
 ]);
-
 ReactDOM.createRoot(document.getElementById('root')).render(
-
-    <RouterProvider router={router} />
-
+    <AntdApp>
+        <AuthWrapper>
+            <RouterProvider router={router} />
+        </AuthWrapper>
+    </AntdApp>
 )
