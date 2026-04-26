@@ -406,7 +406,61 @@ const listOrdersByUserId = async (userId: number) => {
     }
 };
 
+//hủy đơn hàng
+const cancelOrderByUserId = async (userId: number, orderId: number) => {
+    try {
+        return await prisma.$transaction(async (tx) => {
+            //ktra có đơn hàng hay kh 
+            const order = await prisma.order.findFirst({
+                where: {
+                    order_id: orderId,
+                    user_id: userId,
+                    status: "PENDING" //chỉ hủy đơn hàng đang chờ xử lý
+                },
+                include: {
+                    items: true
+                }
+            })
+
+            if (!order) throw new Error("Order not found or order cannot be cancelled");
+
+            //Cập nhật lại stock cho từng variant
+            for (const item of order.items) {
+                await tx.inventory.updateMany({
+                    where: { product_variant_id: item.variant_id },
+                    data: {
+                        stock: { increment: item.quantity },
+                        sold: { decrement: item.quantity },
+                    },
+                });
+
+
+                // log vào inventoryLog
+                await tx.inventoryLog.create({
+                    data: {
+                        product_variant_id: item.variant_id,
+                        action_type: "CANCEL_ORDER",
+                        quantity: item.quantity,
+                        note: `Hoàn trả khi hủy đơn hàng #${orderId}`,
+                        created_by: userId,
+                    },
+                });
+            }
+            //Cập nhật trạng thái đơn
+            return await tx.order.update({
+                where: { order_id: orderId },
+                data: { status: "CANCELED" },
+            });
+        });
+
+    } catch (error: any) {
+        throw new Error("Có lỗi xảy ra khi hủy đơn hàng");
+    }
+
+}
+
 export {
     countTotalProductClientPages, fetchProductsPaginated, fetchAllProducts, getProductById, getAllCategory, getProductInCart, addProductToCart,
-    updateCartDetailBeforeCheckout, handleDeleteProductInCart, handlePlaceOrder, listOrdersByUserId
+    updateCartDetailBeforeCheckout, handleDeleteProductInCart, handlePlaceOrder, listOrdersByUserId, cancelOrderByUserId,
+
 }
