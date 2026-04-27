@@ -1,3 +1,4 @@
+
 import { prisma } from 'config/client'
 import { Response, Request } from 'express'
 import { handleCreateProduct, handleHideProduct, handleHideVariant, handleUpdateProduct } from 'services/admin/product-service'
@@ -5,27 +6,21 @@ import { handleCreateProduct, handleHideProduct, handleHideVariant, handleUpdate
 
 const postCreateProduct = async (req: Request, res: Response) => {
     try {
+        if (!req.file) throw new Error("Product image is required");
 
-        if (!req.file) {
-            return res.status(400).json({
-                message: "Product image is required",
-            });
-        }
+        const userId = req.user?.id;
+        if (!userId) throw new Error("Unauthorized");
 
-        const userId = req.user?.id as number;
         const { name, basePrice, description, category_id } = req.body;
-        const file = req.file;
-        const productImg = file?.filename ?? undefined;
+        if (!name || !basePrice || !category_id)
+            throw new Error("Missing required fields");
 
-        // Parse variants
-        let variants = [];
-        try {
-            variants = JSON.parse(req.body.variants);
-        } catch (e) {
-            variants = [];
-        }
+        const variants = JSON.parse(req.body.variants || "[]");
+        if (variants.length === 0)
+            throw new Error("Variants are required");
 
-        // variants FE gửi là array [{ color, storage, price, stock }]
+        const productImg = req.file?.filename;
+
         const newProduct = await handleCreateProduct(
             name,
             basePrice,
@@ -36,29 +31,24 @@ const postCreateProduct = async (req: Request, res: Response) => {
             variants
         );
 
-        return res.status(201).json({
-            message: "Product created successfully",
-            data: newProduct,
-        });
-    } catch (error: any) {
-        console.error("Error creating product:", error);
-        return res.status(500).json({
-            message: "Failed to create product",
-            error: error.message,
-        });
+        if (!newProduct) throw new Error("Create failed");
+
+        return res.status(201).json({ data: newProduct });
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message });
     }
 };
 
-const postHideProduct = async (req: Request, res: Response) => {
 
+
+
+const postHideProduct = async (req: Request, res: Response) => {
     if (!req.params.id) {
         return res.status(400).json({
             message: "Product ID is required",
         });
     }
-
-    const id = req.params.id as string;
-
+    const id = req.params.id as string
     try {
         const message = await handleHideProduct(id)
         return res.status(201).json({
@@ -76,13 +66,6 @@ const postHideProduct = async (req: Request, res: Response) => {
 
 const postUpdateProduct = async (req: Request, res: Response) => {
     try {
-
-        if (!req.params.id) {
-            return res.status(400).json({
-                message: "Product ID is required",
-            });
-        }
-
         const userId = req.user?.id as number;
         const id = req.params.id as string;
         const { name, basePrice, description, category_id, status } = req.body;
@@ -114,9 +97,10 @@ const postUpdateProduct = async (req: Request, res: Response) => {
     }
 }
 
+
 //variants
 const postHideVariant = async (req: Request, res: Response) => {
-    const id = req.params.id as string;
+    const id = req.params.id as string
     try {
         const message = await handleHideVariant(id)
         return res.status(201).json({
@@ -169,6 +153,7 @@ const getInventory = async (req: Request, res: Response) => {
         });
     }
 };
+
 
 export {
     postCreateProduct, postUpdateProduct, postHideProduct, postHideVariant, getInventory
