@@ -46,7 +46,7 @@ app.use((req, res, next) => {
 
 //cors
 app.use(cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000", "https://apple-store-flax.vercel.app/"],
     credentials: true,
 }));
 
