@@ -101,7 +101,35 @@ const placeOrder = async (orderData) => {
     );
 };
 
+//order
+const getOrderHistory = () => {
+    const token = localStorage.getItem("access_token");
+    const URL_BACKEND = `/api/order-history`;
+
+    return axios.get(URL_BACKEND, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
+const cancelOrder = (orderId) => {
+    const token = localStorage.getItem("access_token");
+    const URL_BACKEND = `/api/cancel-order/${orderId}`;
+
+    return axios.put(
+        URL_BACKEND,
+        {},
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+};
+
 export {
     postLogin, getAccountAPI, getCartCount, postRegister, getAllCategory, filterProducts, getProductById,
-    getCart, deleteProductFromCart, updateCartQuantity, addToCartFromDetail, placeOrder
+    getCart, deleteProductFromCart, updateCartQuantity, addToCartFromDetail, placeOrder,
+    cancelOrder, getOrderHistory
 }
