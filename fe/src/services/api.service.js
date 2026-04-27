@@ -128,8 +128,19 @@ const cancelOrder = (orderId) => {
     );
 };
 
+//profile
+const updateUserProfile = (formData) => {
+    return axios.put("/api/profile", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        }
+    });
+};
+
+
 export {
     postLogin, getAccountAPI, getCartCount, postRegister, getAllCategory, filterProducts, getProductById,
     getCart, deleteProductFromCart, updateCartQuantity, addToCartFromDetail, placeOrder,
-    cancelOrder, getOrderHistory
+    cancelOrder, getOrderHistory, updateUserProfile
 }
