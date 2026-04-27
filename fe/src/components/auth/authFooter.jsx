@@ -8,7 +8,7 @@ const AuthFooter = () => {
         <div className="auth-footer">
             {/* <span>Forgot password?</span> */}
             <p>
-                New to TNH Store? <Link to="/register">Create an account</Link>
+                New to Apple Store? <Link to="/register">Create an account</Link>
             </p>
             <p style={{ marginTop: 10 }}>
                 <Link

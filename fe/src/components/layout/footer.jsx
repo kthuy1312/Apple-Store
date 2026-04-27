@@ -8,9 +8,9 @@ const Footer = () => {
 
                 {/* Logo & About Us */}
                 <div className="footer-about">
-                    <h2 className="footer-logo">TNH Store</h2>
+                    <h2 className="footer-logo">Apple Store</h2>
                     <p className="footer-description">
-                        TNH Store is a shop specializing in providing genuine Apple products such as iPhone, iPad, MacBook, and accessories. We are committed to offering our customers the best shopping experience, high-quality products, and dedicated after-sales service.
+                        Apple Store is a shop specializing in providing genuine Apple products such as iPhone, iPad, MacBook, and accessories. We are committed to offering our customers the best shopping experience, high-quality products, and dedicated after-sales service.
                     </p>
                 </div>
 
@@ -28,7 +28,7 @@ const Footer = () => {
                 </div>
 
                 {/* Copy right */}
-                <p className="footer-text">© {new Date().getFullYear()} TNH Store. All rights reserved.</p>
+                <p className="footer-text">© {new Date().getFullYear()} Apple Store. All rights reserved.</p>
             </div>
         </footer>
     );

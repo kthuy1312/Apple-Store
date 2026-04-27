@@ -4,7 +4,7 @@
   "description": "node js pro hoidanit",
   "main": " ",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "nodemon",
     "dev": "nodemon",
     "start:debug": "nodemon --inspect=9229 -e ts,tsx --exec node -r ts-node/register -r tsconfig-paths/register ./src/app.ts"
@@ -31,6 +31,7 @@
   "homepage": "https://github.com/kthuy1312/Nodejs_Pro#readme",
   "dependencies": {
     "@prisma/client": "6.3.0",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "2.8.5",
     "dotenv": "16.4.7",

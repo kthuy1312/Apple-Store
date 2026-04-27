@@ -1,0 +1,1229 @@
+openapi: 3.0.3
+info:
+  title: KTPM Final BE API
+  description: Swagger documentation cho backend BE của ứng dụng thương mại điện tử.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3002
+    description: Local development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ProductId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Product variant or product identifier
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: Order ID
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: User identifier
+    CategoryName:
+      name: category
+      in: query
+      schema:
+        type: string
+      description: Tên category để lọc sản phẩm
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+      description: Trang hiện tại
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        default: 10
+      description: Số lượng sản phẩm mỗi trang
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+        error:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        status:
+          type: string
+        avatar:
+          type: string
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        basePrice:
+          type: number
+        description:
+          type: string
+        category_id:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        variants:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+              price:
+                type: number
+              quantity:
+                type: integer
+              status:
+                type: string
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    CartItem:
+      type: object
+      properties:
+        item_id:
+          type: integer
+        product_id:
+          type: integer
+        variant_id:
+          type: integer
+        quantity:
+          type: integer
+        price:
+          type: number
+        productName:
+          type: string
+        variantName:
+          type: string
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        receiverName:
+          type: string
+        receiverAddress:
+          type: string
+        receiverPhone:
+          type: string
+        totalAmount:
+          type: number
+        paymentMethod:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: integer
+              variantId:
+                type: integer
+              quantity:
+                type: integer
+              price:
+                type: number
+    WishlistItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        image:
+          type: string
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        user_id:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+    description: Xác thực và thông tin người dùng
+  - name: Client
+    description: API phía client cho sản phẩm, giỏ hàng, đơn hàng, wishlist, review
+  - name: Admin
+    description: API quản trị sản phẩm, đơn hàng, người dùng
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Đăng nhập bằng email và password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Đăng nhập thất bại
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Đăng ký người dùng mới
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - confirmPassword
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                confirmPassword:
+                  type: string
+      responses:
+        '201':
+          description: Đăng ký thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Lỗi validate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/account:
+    get:
+      tags:
+        - Auth
+      summary: Lấy thông tin account của người dùng đang đăng nhập
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Thông tin account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+  /api/products:
+    get:
+      tags:
+        - Client
+      summary: Lấy toàn bộ sản phẩm
+      responses:
+        '200':
+          description: Danh sách sản phẩm
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+  /api/product:
+    get:
+      tags:
+        - Client
+      summary: Lấy sản phẩm phân trang
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Sản phẩm phân trang
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  meta:
+                    type: object
+                    properties:
+                      totalPages:
+                        type: integer
+                      current:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      totalProduct:
+                        type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+  /api/product/{id}:
+    get:
+      tags:
+        - Client
+      summary: Lấy chi tiết sản phẩm
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Thông tin sản phẩm
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Product'
+  /api/products/filter:
+    get:
+      tags:
+        - Client
+      summary: Lọc sản phẩm theo từ khóa, danh mục, giá, sắp xếp
+      parameters:
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: subCategory
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [priceAsc, priceDesc, newest, oldest, nameAsc, nameDesc]
+      responses:
+        '200':
+          description: Danh sách sản phẩm đã lọc
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+  /api/category:
+    get:
+      tags:
+        - Client
+      summary: Lấy danh sách category
+      responses:
+        '200':
+          description: Danh mục sản phẩm
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+  /api/cart:
+    get:
+      tags:
+        - Client
+      summary: Lấy giỏ hàng của người dùng
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Giỏ hàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  cart_detail:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CartItem'
+                  totalPrice:
+                    type: number
+                  cartId:
+                    type: integer
+  /api/add-product/{id}:
+    post:
+      tags:
+        - Client
+      summary: Thêm sản phẩm vào giỏ hàng theo variant
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '201':
+          description: Đã thêm sản phẩm vào giỏ hàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /api/delete-product/{id}:
+    delete:
+      tags:
+        - Client
+      summary: Xóa sản phẩm khỏi giỏ hàng
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      responses:
+        '200':
+          description: Xóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /api/count-cart:
+    get:
+      tags:
+        - Client
+      summary: Lấy tổng số lượng mục trong giỏ hàng
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Số lượng sản phẩm trong giỏ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  cartCount:
+                    type: integer
+  /api/add-to-cart-from-detail-page/{id}:
+    post:
+      tags:
+        - Client
+      summary: Thêm sản phẩm vào giỏ hàng từ trang chi tiết
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Thêm vào giỏ hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /api/handle-cart-to-checkout:
+    post:
+      tags:
+        - Client
+      summary: Cập nhật giỏ hàng trước khi thanh toán
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cart_id
+                - cartDetails
+              properties:
+                cart_id:
+                  type: string
+                cartDetails:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      item_id:
+                        type: string
+                      quantity:
+                        type: string
+      responses:
+        '200':
+          description: Cập nhật giỏ hàng thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/checkout:
+    get:
+      tags:
+        - Client
+      summary: Lấy thông tin giỏ hàng chuẩn bị thanh toán
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Thông tin checkout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  cartDetails:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CartItem'
+                  totalPrice:
+                    type: number
+  /api/place-order:
+    post:
+      tags:
+        - Client
+      summary: Thực hiện đặt hàng
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - receiverName
+                - receiverAddress
+                - receiverPhone
+                - totalAmount
+                - paymentMethod
+                - items
+              properties:
+                receiverName:
+                  type: string
+                receiverAddress:
+                  type: string
+                receiverPhone:
+                  type: string
+                totalAmount:
+                  type: number
+                paymentMethod:
+                  type: string
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      productId:
+                        type: integer
+                      variantId:
+                        type: integer
+                      quantity:
+                        type: integer
+                      price:
+                        type: number
+      responses:
+        '200':
+          description: Đặt hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /api/order-history:
+    get:
+      tags:
+        - Client
+      summary: Lấy lịch sử đặt hàng của người dùng
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lịch sử đơn hàng
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  order:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+  /api/cancel-order/{orderId}:
+    put:
+      tags:
+        - Client
+      summary: Hủy đơn hàng
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Hủy đơn hàng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /api/profile:
+    put:
+      tags:
+        - Client
+      summary: Cập nhật thông tin người dùng
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                address:
+                  type: string
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Cập nhật profile thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+  /api/wishlist:
+    get:
+      tags:
+        - Client
+      summary: Lấy danh sách yêu thích
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Danh sách wishlist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WishlistItem'
+    delete:
+      tags:
+        - Client
+      summary: Xóa tất cả sản phẩm yêu thích
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Xóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+  /api/wishlist/{productId}:
+    post:
+      tags:
+        - Client
+      summary: Thêm sản phẩm vào wishlist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Thêm wishlist thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  success:
+                    type: boolean
+    delete:
+      tags:
+        - Client
+      summary: Xóa sản phẩm khỏi wishlist
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Xóa wishlist thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+  /api/review:
+    post:
+      tags:
+        - Client
+      summary: Thêm đánh giá sản phẩm
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productId
+                - rating
+                - comment
+              properties:
+                productId:
+                  type: integer
+                rating:
+                  type: integer
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Gửi đánh giá thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  reviewData:
+                    $ref: '#/components/schemas/Review'
+  /api/review/{id}:
+    get:
+      tags:
+        - Client
+      summary: Lấy đánh giá theo product id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Danh sách review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Lấy danh sách người dùng
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Danh sách user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+  /admin/disabled-users/{id}:
+    put:
+      tags:
+        - Admin
+      summary: Vô hiệu hóa người dùng
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Vô hiệu hóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+  /admin/users/{userId}:
+    put:
+      tags:
+        - Admin
+      summary: Cập nhật user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                address:
+                  type: string
+                phone:
+                  type: string
+                role:
+                  type: string
+                status:
+                  type: string
+                avatar:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Cập nhật user thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+  /admin/orders:
+    get:
+      tags:
+        - Admin
+      summary: Lấy danh sách đơn hàng
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Danh sách order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+  /admin/orders/{orderId}:
+    put:
+      tags:
+        - Admin
+      summary: Cập nhật trạng thái đơn hàng
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Cập nhật trạng thái thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Order'
+  /admin/products:
+    post:
+      tags:
+        - Admin
+      summary: Tạo sản phẩm mới
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - basePrice
+                - category_id
+                - variants
+              properties:
+                name:
+                  type: string
+                basePrice:
+                  type: number
+                description:
+                  type: string
+                category_id:
+                  type: integer
+                variants:
+                  type: string
+                  description: JSON string của variants
+                productImg:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Tạo sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+  /admin/products/{id}:
+    put:
+      tags:
+        - Admin
+      summary: Cập nhật sản phẩm
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                basePrice:
+                  type: number
+                description:
+                  type: string
+                category_id:
+                  type: integer
+                status:
+                  type: string
+                variants:
+                  type: string
+                  description: JSON string của variants
+                productImg:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Cập nhật sản phẩm thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Product'
+  /admin/hide-product/{id}:
+    put:
+      tags:
+        - Admin
+      summary: Ẩn/hiện sản phẩm
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+  /admin/hide-variant/{id}:
+    put:
+      tags:
+        - Admin
+      summary: Ẩn variant sản phẩm
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Variant hidden successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+  /admin/inventory:
+    get:
+      tags:
+        - Admin
+      summary: Lấy thông tin inventory sản phẩm
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Inventory products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'

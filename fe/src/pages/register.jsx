@@ -60,7 +60,7 @@ const RegisterPage = () => {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <h1>Create your TNH account</h1>
+                <h1>Create your Apple account</h1>
                 <p>Earn loyalty points and keep track of all Apple devices you love.</p>
 
                 <form className="auth-form" onSubmit={handleSubmit}>

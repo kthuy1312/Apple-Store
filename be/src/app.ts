@@ -9,12 +9,18 @@ import passport from 'passport'
 import authRoute from 'routes/auth'
 import api from 'routes/api'
 import adminRoute from 'routes/ad'
+import swaggerUi from 'swagger-ui-express'
+import YAML from 'yamljs'
+import path from 'path'
 
 const app = express()
 
 
 require('dotenv').config()
-const port = process.env.PORT || 3002
+const port = process.env.PORT || 8888
+
+const swaggerDocument = YAML.load(path.resolve(__dirname, '../swagger.yaml'))
+
 
 app.set('view engine', 'ejs')
 app.set('views', __dirname + '/views')
@@ -50,6 +56,8 @@ authRoute(app)
 api(app)
 adminRoute(app)
 
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 //mock data
 initDatabase()

@@ -8,7 +8,7 @@ const faqs = [
     },
     {
         question: 'Can I try products at the store?',
-        answer: 'Yes. Book an appointment with TNH Studio to experience Mac, iPhone and accessories with a specialist.',
+        answer: 'Yes. Book an appointment with Apple Studio to experience Mac, iPhone and accessories with a specialist.',
     },
     {
         question: 'What is the return policy?',
