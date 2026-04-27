@@ -23,6 +23,8 @@ import SupportPage from './pages/support.jsx';
 import AdminRoute from './admin/routes/AdminRoute.jsx';
 import AdminLayout from './admin/AdminLayout.jsx';
 import Dashboard from './admin/pages/Dashboard.jsx';
+import ProductManagement from './admin/pages/ProductManagement.jsx';
+import CategoryManagement from './admin/pages/CategoryManagement.jsx';
 
 
 const router = createBrowserRouter([
@@ -93,6 +95,8 @@ const router = createBrowserRouter([
         ),
         children: [
             { index: true, element: <Dashboard /> },
+            { path: "products", element: <ProductManagement /> },
+            { path: "categories", element: <CategoryManagement /> },
         ],
     },
 ]);
